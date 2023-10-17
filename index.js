@@ -180,65 +180,60 @@ class ConnectionAwait {
    * @description Queries the MySQL database, returning a [Promise] that resolves when finished, emitting an error if one is encountered.  
    */
   awaitQuery(query, params) {
-  return new Promise((resolve, reject) => {
-    if (typeof params === 'undefined') {
-      this.connection.query(query, (err, result) => {
-        if (err) {
-          if (this.inTransaction) {
-            this.connection.rollback(() => {
-              this.inTransaction = false;
-              this.connection.emit('error', err);
-
-              if (this.config.throwErrors) {
-                reject(err);
-              } else {
-                resolve(err); // Resolve with the error to indicate it's handled
-              }
-            });
-          } else {
-            this.connection.emit('error', err);
-
-            if (this.config.throwErrors) {
-              reject(err);
+    return new Promise((resolve, reject) => {
+      if ( typeof params === `undefined` ) {
+        this.connection.query(query, (err, result) => {
+          if ( err ) {
+            if ( this.inTransaction ) {
+              this.connection.rollback(() => {
+                this.inTransaction = false;
+                this.connection.emit(`error`, err);
+                
+                if ( this.config.throwErrors )
+                  reject(err);
+                else
+                  resolve();
+              });
             } else {
-              resolve(err); // Resolve with the error to indicate it's handled
-            }
-          }
-        } else {
-          resolve(result);
-        }
-      });
-    } else {
-      this.connection.query(query, params, (err, result) => {
-        if (err) {
-          if (this.inTransaction) {
-            this.connection.rollback(() => {
-              this.inTransaction = false;
-              this.connection.emit('error', err);
-
-              if (this.config.throwErrors) {
+              // this.connection.emit(`error`, err); // This is causing an error for some reason (is it because there is a parsing issue?)
+              
+              if ( this.config.throwErrors )
                 reject(err);
-              } else {
-                resolve(err); // Resolve with the error to indicate it's handled
-              }
-            });
-          } else {
-            this.connection.emit('error', err);
-
-            if (this.config.throwErrors) {
-              reject(err);
-            } else {
-              resolve(err); // Resolve with the error to indicate it's handled
+              else
+                resolve();
             }
+          } else {
+            resolve(result);
           }
-        } else {
-          resolve(result);
-        }
-      });
-    }
-  });
-}
-
+        });
+      } else {
+        this.connection.query(query, params, (err, result) => {
+          if ( err ) {
+            if ( this.inTransaction ) {
+              this.connection.rollback(() => {
+                this.inTransaction = false;
+                this.connection.emit(`error`, err);
+                
+                if ( this.config.throwErrors )
+                  reject(err);
+                else
+                  resolve();
+              });
+            } else {
+              this.connection.emit(`error`, err);
+              
+              if ( this.config.throwErrors )
+                reject(err);
+              else
+                resolve();
+            }
+          } else {
+            resolve(result);
+          }
+        });
+      }
+    });
+  }
   
   /**
    * @signature awaitRollback()
